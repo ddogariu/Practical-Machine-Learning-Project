@@ -1,0 +1,47 @@
+---
+title: "Project"
+output: html_document
+---
+
+Load the data:
+```{r}
+setInternet2(TRUE)
+urlTraining<- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+download.file(urlTraining,destfile="training.csv",mode="wb")
+urlTesting<- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+download.file(urlTesting,destfile="testing.csv",mode="wb")
+```
+
+Read the csv files into data frames:
+```{r}
+training<- read.csv("training.csv")
+testing<- read.csv("testing.csv")
+```
+
+Remove NA variables:
+```{r}
+training<- training[, colSums(is.na(training)) == 0]
+testing<- testing[, colSums(is.na(testing)) == 0]
+```
+
+Remove other variables 
+```{r}
+training<- training[,grepl("X|user_name|timestamp|window|^max|^min|^ampl|^var|^avg|^stdd|^ske|^kurt", colnames(training))==F]
+testing<- testing[,grepl("X|user_name|timestamp|window|^max|^min|^ampl|^var|^avg|^stdd|^ske|^kurt", colnames(testing))==F]
+```
+
+Split the training set in train and validation data:
+```{r}
+train<- training[sample(nrow(training), 3000), ]
+validation<- training[sample(nrow(training), 1250), ]
+```
+
+Use the randomForest algorithm in order to bulid the model:
+```{r}
+library(randomForest)
+modelRF<- randomForest(classe ~ ., data = train)
+modelRF
+plot(modelRF)
+# use the prediction model to predict 20 different test cases
+predict(modelRF, newdata= testing)[1:20]
+```
